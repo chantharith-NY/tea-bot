@@ -14,11 +14,11 @@ async def order_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global is_open
 
     if not is_open:
-        await update.message.reply_text("❌ Ordering is closed.")
+        await update.message.reply_text("❌ ការកក់ត្រូវបានបិទ។ សូមទាក់ទងម្ចាស់ដើម្បីបើកឡើងវិញ។")
         return
 
     start_session(update.message.from_user.id)
-    await update.message.reply_text("🧋 Product name?")
+    await update.message.reply_text("តែជ្រក់ហេ?\n\nសូមបញ្ចូលឈ្មោះផលិតផលដែលអ្នកចង់បញ្ជាទិញ។")
 
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
@@ -37,7 +37,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if session["step"] == "product":
         session["product"] = update.message.text.strip()
         session["step"] = "quantity"
-        await update.message.reply_text("🔢 Quantity?")
+        await update.message.reply_text("ចង់បានម៉ាន ប្រូប្រូ ស៊ីសស៊ីស")
         return
 
     # ===============================
@@ -52,13 +52,13 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 raise ValueError()
 
         except ValueError:
-            await update.message.reply_text("❌ Please enter a valid number greater than 0.")
+            await update.message.reply_text("វាគ្មានអាណាកម្មង់ ០ ទេ")
             return
 
         session["quantity"] = quantity
         session["step"] = "buyer"
 
-        await update.message.reply_text("👤 Buyer name?")
+        await update.message.reply_text("ណាគេហ្នឹង?")
         return
 
     # ===============================
@@ -80,7 +80,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             create_order(db, order_data)
 
         except SQLAlchemyError:
-            await update.message.reply_text("❌ Database error. Please try again.")
+            await update.message.reply_text("មានបញ្ហាក្នុងការរក្សាទុកការបញ្ជាទិញ។ សូមព្យាយាមម្តងទៀត។")
             db.close()
             return
 
@@ -88,7 +88,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         clear_session(user_id)
 
         await update.message.reply_text(
-            f"✅ Order Saved!\n\n"
+            f"ដោយមួយទុកចំណាំ\n\n"
             f"🧋 {session['product']}\n"
             f"🔢 {session['quantity']}\n"
             f"👤 {update.message.text.strip()}"
@@ -100,17 +100,17 @@ async def show_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     db.close()
 
     if not orders:
-        await update.message.reply_text("📭 No pending orders.")
+        await update.message.reply_text("អត់អ្នកផឹកសោះ")
         return
 
-    msg = "📋 Pending Orders\n\n"
+    msg = "កំពុងចាំនាក\n\n"
     summary = {}
 
     for o in orders:
         msg += f"{o.product} x{o.quantity} - {o.buyer}\n"
         summary[o.product] = summary.get(o.product, 0) + o.quantity
 
-    msg += "\n📊 Summary:\n"
+    msg += "\n📊 ចាំមើលគេប្រាប់\n"
     for k, v in summary.items():
         msg += f"{k}: {v}\n"
 
@@ -120,17 +120,17 @@ async def bought_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     db = SessionLocal()
     mark_all_bought(db)
     db.close()
-    await update.message.reply_text("🛒 All orders marked as bought!")
+    await update.message.reply_text("ទិញហើយហៃ")
 
 async def close_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global is_open
     is_open = False
-    await update.message.reply_text("🔒 Ordering closed.")
+    await update.message.reply_text("ឈប់កក់ហើយ។ សូមទាក់ទងម្ចាស់ដើម្បីបើកឡើងវិញ។")
 
 async def open_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global is_open
     is_open = True
-    await update.message.reply_text("🔓 Ordering reopened.")
+    await update.message.reply_text("បើកការកក់វិញហើយ។")
 
 def build_application():
     app = ApplicationBuilder().token(TOKEN).build()
